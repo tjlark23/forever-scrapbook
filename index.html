@@ -1,167 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Larkins — A Family Scrapbook</title>
-  <meta name="description" content="A permanent digital family scrapbook for the Larkin family. Our story, our photos, our memories.">
-  
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=Homemade+Apple&family=Patrick+Hand&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Larkins — A Family Scrapbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Patrick+Hand&family=Homemade+Apple&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- ======== HOMEPAGE ======== -->
-  <div id="page-home" class="page active">
-    
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="hero-text">
-          <h1 class="hero-title">hey, we're<br>the <span class="highlight">larkins</span></h1>
-          <p class="hero-subtitle">A family of four from Liberty Hill, Texas.<br>This is our digital scrapbook — a place to keep<br>the photos, the memories, and the little moments<br>that make us, <em>us</em>.</p>
-        </div>
-        <div class="hero-corkboard">
-          <div class="corkboard" id="corkboard">
-            <!-- 6 polaroids populated by JS -->
-          </div>
-        </div>
+
+<!-- PHOTO FLIP MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="flip-container" onclick="event.stopPropagation()">
+    <div class="flip-card" id="flip-card" onclick="this.classList.toggle('flipped')">
+      <div class="flip-front">
+        <div class="flip-front-img ph2" id="modal-img">📷</div>
+        <div class="flip-front-cap" id="modal-cap">Caption</div>
       </div>
-    </section>
-
-    <!-- MEET THE FAMILY -->
-    <section class="meet-family" id="meet-family">
-      <h2 class="section-title handwriting">meet the family</h2>
-      <div class="family-cards">
-        <div class="family-card reveal" style="--rotate: -2deg">
-          <div class="polaroid">
-            <div class="washi-tape washi-blue"></div>
-            <img src="photos/headshots/tj.jpg" alt="TJ Larkin" loading="lazy">
-            <div class="polaroid-caption">TJ</div>
-          </div>
-          <p class="card-role">dad / builder of things</p>
-          <p class="card-desc">Media entrepreneur, golf enthusiast, and the one most likely to automate the family chore chart.</p>
-        </div>
-        <div class="family-card reveal" style="--rotate: 1.5deg; animation-delay: 0.1s">
-          <div class="polaroid">
-            <div class="washi-tape washi-pink"></div>
-            <img src="photos/headshots/ashley.jpg" alt="Ashley Larkin" loading="lazy">
-            <div class="polaroid-caption">Ashley</div>
-          </div>
-          <p class="card-role">mom / the real boss</p>
-          <p class="card-desc">Keeps everything running. Patient beyond measure. Possibly powered by iced coffee and sheer willpower.</p>
-        </div>
-        <div class="family-card reveal" style="--rotate: -1deg; animation-delay: 0.2s">
-          <div class="polaroid">
-            <div class="washi-tape washi-sage"></div>
-            <img src="photos/headshots/noelle.jpg" alt="Noelle Larkin" loading="lazy">
-            <div class="polaroid-caption">Noelle</div>
-          </div>
-          <p class="card-role">daughter / age 9</p>
-          <p class="card-desc">Creative, curious, and full of opinions. Loves art, animals, and being in charge of her little brother.</p>
-        </div>
-        <div class="family-card reveal" style="--rotate: 2deg; animation-delay: 0.3s">
-          <div class="polaroid">
-            <div class="washi-tape washi-yellow"></div>
-            <img src="photos/headshots/charlie.jpg" alt="Charlie Larkin" loading="lazy">
-            <div class="polaroid-caption">Charlie</div>
-          </div>
-          <p class="card-role">son / age 6</p>
-          <p class="card-desc">Pure energy in a small body. Loves soccer, Converse shoes, and laughing at his own jokes.</p>
-        </div>
+      <div class="flip-back">
+        <div class="flip-back-text" id="modal-back">This is where the story behind the photo goes. The kind of thing you'd write on the back of a printed photo — who was there, what happened, why it mattered.</div>
+        <div class="flip-back-date" id="modal-date">January 2019</div>
       </div>
-    </section>
-
-    <!-- OUR STORY TIMELINE -->
-    <section class="timeline-section" id="our-story">
-      <h2 class="section-title handwriting">our story</h2>
-      <p class="section-intro">From the beginning to now — year by year, memory by memory.</p>
-      <div class="timeline" id="timeline">
-        <!-- Populated by JS -->
-      </div>
-    </section>
-
-    <!-- FAMILY VALUES -->
-    <section class="values-section" id="values">
-      <div class="values-hero-frame reveal">
-        <p class="values-hero-text">"The Journey Matters"</p>
-      </div>
-      <div class="values-grid">
-        <div class="value-card reveal" style="--bg: var(--blush)">
-          <div class="value-icon">💛</div>
-          <h3>Lead With Kindness</h3>
-          <p>Be gentle with others. The world is hard enough. A kind word costs nothing and changes everything.</p>
-        </div>
-        <div class="value-card reveal" style="--bg: var(--dusty-blue)">
-          <div class="value-icon">💪</div>
-          <h3>Fit Minds & Fit Bodies</h3>
-          <p>Read books. Play outside. Take care of the body and brain you were given — they're the only ones you get.</p>
-        </div>
-        <div class="value-card reveal" style="--bg: var(--butter-yellow)">
-          <div class="value-icon">🔍</div>
-          <h3>Always Be Curious</h3>
-          <p>Ask questions. Try new things. The best adventures start with "I wonder what would happen if..."</p>
-        </div>
-        <div class="value-card reveal" style="--bg: var(--lavender)">
-          <div class="value-icon">🌱</div>
-          <h3>Grit Makes Us Grow</h3>
-          <p>Hard things are worth doing. When you fall down, you get back up. That's how Larkins are built.</p>
-        </div>
-        <div class="value-card reveal" style="--bg: var(--sage)">
-          <div class="value-icon">🤝</div>
-          <h3>We Are One Team</h3>
-          <p>We show up for each other. We celebrate together, we struggle together, and we figure it out — together.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- QUOTE STRIP -->
-    <section class="quote-strip">
-      <p class="family-motto">"We figure it out."</p>
-      <p class="motto-label">— family motto</p>
-    </section>
-
-    <!-- FOOTER -->
-    <footer class="site-footer">
-      <p class="footer-heart">♥</p>
-      <p class="footer-text">Made with love, caffeine, and questionable HTML</p>
-    </footer>
-  </div>
-
-  <!-- ======== SCRAPBOOK YEAR PAGES ======== -->
-  <div id="page-scrapbook" class="page">
-    <button class="back-btn" onclick="navigateTo('home')">← Back to story</button>
-    <div class="scrapbook-header">
-      <div class="scrapbook-year-bg" id="scrapbook-year-bg"></div>
-      <h1 class="scrapbook-headline handwriting" id="scrapbook-headline"></h1>
-      <p class="scrapbook-description" id="scrapbook-description"></p>
     </div>
-    <div class="scrapbook-photos" id="scrapbook-photos">
+    <div class="flip-hint">click to flip · click outside to close</div>
+  </div>
+</div>
+
+<!-- ========== MAIN PAGE ========== -->
+<div class="page active" id="home">
+
+<section class="hero">
+  <div class="hero-text">
+    <p class="hero-ey">welcome to</p>
+    <h1 class="hero-t">The <em>Larkins</em></h1>
+    <p class="hero-sub">our little corner of the world — told in photos, sticky notes, and too many tacos</p>
+    <p class="hero-loc">Liberty Hill, Texas · Est. 2013</p>
+    <div class="hero-sc"><span>keep scrolling</span><span>↓</span></div>
+  </div>
+  <div class="hero-cork">
+    <div class="cork-frame" id="corkboard">
       <!-- Populated by JS -->
     </div>
   </div>
+</section>
 
-  <!-- ======== PHOTO MODAL ======== -->
-  <div class="photo-modal" id="photo-modal">
-    <div class="modal-backdrop" onclick="closeModal()"></div>
-    <div class="modal-content" id="modal-content">
-      <div class="modal-card" id="modal-card">
-        <div class="modal-front" id="modal-front">
-          <img id="modal-img" src="" alt="">
-        </div>
-        <div class="modal-back" id="modal-back">
-          <div class="notebook-lines"></div>
-          <p class="back-text">This moment matters.</p>
-          <p class="back-date" id="modal-date"></p>
-        </div>
+<div class="dv"><div class="dv-l"></div><span class="dv-i">✦</span><div class="dv-l"></div></div>
+
+<section class="meet">
+  <div class="sh"><p class="sh-l" data-a>chapter one</p><h2 class="sh-t" data-a>Meet the Family</h2><p class="sh-g" data-a>four humans, one loud household</p></div>
+  <div class="fg">
+    <div class="fm" style="--t:-2.5deg" data-delay="0"><div class="fpol" style="--t:-2.5deg"><div class="tp tp-c tb" style="--tr:-3deg"></div><img src="photos/headshots/tj.jpg" style="width:100%;display:block;border-radius:1px" draggable="false"><span class="fpc">the dreamer</span></div><p class="fnm">TJ</p><p class="frl">dad · builder · taco enthusiast</p></div>
+    <div class="fm" style="--t:1.5deg" data-delay="120"><div class="fpol" style="--t:1.5deg"><div class="tp tp-c tbl" style="--tr:2deg"></div><img src="photos/headshots/ashley.jpg" style="width:100%;display:block;border-radius:1px" draggable="false"><span class="fpc">the anchor</span></div><p class="fnm">Ashley</p><p class="frl">mom · the real boss · keeper of calm</p></div>
+    <div class="fm" style="--t:-1deg" data-delay="240"><div class="fpol" style="--t:-1deg"><div class="tp tp-c ts" style="--tr:-1.5deg"></div><img src="photos/headshots/noelle.jpg" style="width:100%;display:block;border-radius:1px" draggable="false"><span class="fpc">the wise one</span></div><p class="fnm">Noelle</p><p class="frl">age 9 · big sister · bookworm</p></div>
+    <div class="fm" style="--t:2.5deg" data-delay="360"><div class="fpol" style="--t:2.5deg"><div class="tp tp-c tbu" style="--tr:4deg"></div><img src="photos/headshots/charlie.jpg" style="width:100%;display:block;border-radius:1px" draggable="false"><span class="fpc">the wild card</span></div><p class="fnm">Charlie</p><p class="frl">age 6 · little brother · full volume</p></div>
+  </div>
+</section>
+
+<div class="dv"><div class="dv-l"></div><span class="dv-i">✦</span><div class="dv-l"></div></div>
+
+<section class="tls">
+  <div class="sh"><p class="sh-l" data-a>chapter two</p><h2 class="sh-t" data-a>Our Story</h2><p class="sh-g" data-a>click any year to open the scrapbook</p></div>
+  <div class="tl" id="timeline"></div>
+</section>
+
+<!-- Core Values -->
+<section class="cv">
+  <div class="sh"><p class="sh-l" data-a>chapter three</p><h2 class="sh-t" data-a>What We Stand For</h2></div>
+  <div class="cv-wall">
+    <div class="cv-hero-frame" data-a>
+      <div class="cv-hero-inner">
+        <p class="cv-hero-label">our north star</p>
+        <h3 class="cv-hero-text">The Journey Matters</h3>
+        <div class="cv-hero-line"></div>
+        <p class="cv-hero-sub">It&rsquo;s not about the destination. It&rsquo;s about who we become along the way &mdash; together.</p>
+      </div>
+    </div>
+    <div class="cv-grid">
+      <div class="cv-card cv-c1" style="--r:-1.2deg" data-a data-delay="100">
+        <span class="cv-icon">&#10084;</span>
+        <h4 class="cv-title">Lead With Kindness</h4>
+        <p class="cv-desc">In every room, every conversation, every moment &mdash; kindness first.</p>
+      </div>
+      <div class="cv-card cv-c2" style="--r:0.8deg" data-a data-delay="200">
+        <span class="cv-icon">&#9883;</span>
+        <h4 class="cv-title">Fit Minds &amp; Fit Bodies</h4>
+        <p class="cv-desc">We take care of ourselves so we can take care of each other.</p>
+      </div>
+      <div class="cv-card cv-c3" style="--r:-0.6deg" data-a data-delay="300">
+        <span class="cv-icon">&#10024;</span>
+        <h4 class="cv-title">Always Be Curious</h4>
+        <p class="cv-desc">Ask why. Try new things. Never stop learning.</p>
+      </div>
+      <div class="cv-card cv-c4" style="--r:1deg" data-a data-delay="400">
+        <span class="cv-icon">&#9878;</span>
+        <h4 class="cv-title">Grit Makes Us Grow</h4>
+        <p class="cv-desc">Hard things make strong people. We don&rsquo;t quit.</p>
+      </div>
+      <div class="cv-card cv-c5" style="--r:-0.5deg" data-a data-delay="500">
+        <span class="cv-icon">&#9733;</span>
+        <h4 class="cv-title">We Are One Team</h4>
+        <p class="cv-desc">Nobody goes alone. We show up for each other, always.</p>
       </div>
     </div>
   </div>
+</section>
 
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+<div class="qs"><p class="qt">"We figure it out." — applies to flat tires, homework, and what's for dinner.</p></div>
+
+<section class="ft"><div class="ft-h">♥</div><p class="ft-t">Made with love, caffeine, and questionable HTML.</p><p class="ft-s">The Larkins · Liberty Hill, TX</p></section>
+</div>
+
+<!-- ========== DYNAMIC SCRAPBOOK PAGE ========== -->
+<div class="page" id="sb-year">
+<div class="sb-pg">
+  <button class="sb-bk" onclick="nav('home')">← Back to story</button>
+  <div class="sb-hd">
+    <div class="sb-yr" id="sb-yr-num"></div>
+    <div class="sb-hl" id="sb-yr-hl"></div>
+    <p class="sb-ds" id="sb-yr-ds"></p>
+  </div>
+  <div class="sb-sp" id="sb-yr-spread"></div>
+  <section class="ft"><button class="sb-bk" onclick="nav('home')" style="position:relative;top:auto;left:auto">← Back to our story</button><br><br><p class="ft-s">The Larkins · Liberty Hill, TX</p></section>
+</div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

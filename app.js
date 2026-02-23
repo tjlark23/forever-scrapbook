@@ -1,339 +1,314 @@
-// ===== STATE =====
+// ====== MANIFESTS ======
 let manifests = {};
-let currentPage = 'home';
-let modalFlipped = false;
 
-// ===== INIT =====
-document.addEventListener('DOMContentLoaded', async () => {
-  // Load manifests for years that have photos
-  for (const [year, data] of Object.entries(YEARS_DATA)) {
-    if (data.hasPhotos) {
-      try {
-        const resp = await fetch(`photos/${year}/manifest.json`);
-        if (resp.ok) {
-          manifests[year] = await resp.json();
-        }
-      } catch (e) {
-        console.warn(`Could not load manifest for ${year}`, e);
-      }
+// Load manifests then init
+(async function(){
+  for(const yr of Y){
+    if(yr.hasPhotos){
+      try{
+        const r=await fetch('photos/'+yr.y+'/manifest.json');
+        if(r.ok) manifests[yr.y]=await r.json();
+      }catch(e){console.warn('No manifest for '+yr.y);}
     }
   }
-
-  buildCorkboard();
   buildTimeline();
-  setupScrollReveal();
-  setupKeyboardNav();
+  buildCorkboard();
+  initObs();
+  setupTimelinePhotos();
+})();
 
-  // Check URL hash for direct navigation
-  const hash = window.location.hash.replace('#', '');
-  if (hash.startsWith('year-')) {
-    const year = hash.replace('year-', '');
-    navigateTo('scrapbook', year);
+// ====== BUILD TIMELINE (exact v11 structure) ======
+function buildTimeline(){
+  const tl=document.getElementById('timeline');
+  Y.forEach(function(yr,i){
+    const sd=i%2===0?'l':'r';
+    tl.innerHTML+='<div class="ye '+sd+'" data-ay><div class="yd"></div>'+
+    '<div class="yps"><div class="ypw"><div class="yhi '+yr.c+'">📷<span class="pcb">'+yr.ct+' photos</span></div>'+
+    '<div class="ms"><div class="mt '+TC[(i*3)%7]+'"></div><div class="mt '+TC[(i*3+1)%7]+'"></div><div class="mt '+TC[(i*3+2)%7]+'"></div><div class="mt '+TC[(i*3+3)%7]+'"></div></div></div></div>'+
+    '<div class="yis"><div class="yn">'+yr.y+'</div><div class="yhl">'+yr.h+'</div><p class="ysm">'+yr.s+'</p><p class="ynt">'+yr.n+'</p>'+
+    '<button class="eb" onclick="openYear(\''+yr.y+'\')">Open scrapbook <span class="ar">→</span></button></div></div>';
+  });
+}
+
+// ====== CORKBOARD (exact v11 positioning) ======
+function buildCorkboard(){
+  const board=document.getElementById('corkboard');
+  const photos=manifests['2026'];
+  if(!photos) return;
+  const photoItems=photos.filter(function(p){return p.type==='photo';});
+  // Pick 6 spread photos
+  const indices=[0,3,5,8,12,16];
+  
+  CORK_POSITIONS.forEach(function(pos,i){
+    var idx=indices[i];
+    if(idx>=photoItems.length) idx=i;
+    var photo=photoItems[idx];
+    var style='width:'+pos.width+';padding:6px 6px 18px;transform:rotate('+pos.rotate+');';
+    if(pos.top) style+='top:'+pos.top+';';
+    if(pos.left) style+='left:'+pos.left+';';
+    if(pos.right) style+='right:'+pos.right+';';
+    if(pos.bottom) style+='bottom:'+pos.bottom+';';
+    
+    var html='<div class="cpol" style="'+style+'">'+
+      '<div class="pin '+pos.pin+'" style="left:'+pos.pinLeft+'"></div>'+
+      '<img src="photos/2026/'+photo.filename+'" style="width:100%;display:block;border-radius:1px" draggable="false">'+
+      '<div class="cpol-cap"></div></div>';
+    board.insertAdjacentHTML('beforeend',html);
+  });
+  
+  // Make corkboard photos clickable
+  document.querySelectorAll('.cpol').forEach(function(el){
+    el.addEventListener('click',function(){
+      var img=el.querySelector('img');
+      if(img){
+        var w=img.naturalWidth,h=img.naturalHeight;
+        var o=w>h?'landscape':h>w?'portrait':'square';
+        openModal(img.src,o);
+      }
+    });
+  });
+}
+
+// ====== TIMELINE PHOTOS + ROTATION ======
+function setupTimelinePhotos(){
+  document.querySelectorAll('.ye').forEach(function(entry){
+    var ynEl=entry.querySelector('.yn');
+    if(!ynEl) return;
+    var year=ynEl.textContent.trim();
+    var photos=manifests[year];
+    if(!photos) return;
+    
+    var photoItems=photos.filter(function(p){return p.type==='photo';});
+    if(photoItems.length===0) return;
+    
+    // Pick 5 representative photos (hero + 4 thumbs)
+    var pick=[];
+    var step=Math.max(1,Math.floor(photoItems.length/5));
+    for(var j=0;j<5&&j*step<photoItems.length;j++){
+      pick.push(photoItems[j*step]);
+    }
+    while(pick.length<5&&photoItems.length>0){
+      pick.push(photoItems[pick.length%photoItems.length]);
+    }
+    
+    var hero=entry.querySelector('.yhi');
+    if(!hero) return;
+    
+    var pcb=hero.querySelector('.pcb');
+    var pcbText=pcb?pcb.textContent:'';
+    hero.innerHTML='<span class="pcb">'+pcbText+'</span>';
+    
+    pick.forEach(function(p,i){
+      var img=document.createElement('img');
+      img.src='photos/'+year+'/'+p.filename;
+      img.loading='lazy';
+      if(i===0) img.className='active';
+      hero.appendChild(img);
+    });
+    
+    // Thumbnails
+    var thumbEls=entry.querySelectorAll('.mt');
+    for(var t=0;t<4&&t<pick.length-1;t++){
+      if(thumbEls[t]){
+        thumbEls[t].style.backgroundImage='url(photos/'+year+'/'+pick[t+1].filename+')';
+      }
+    }
+    
+    // Auto-rotate every 2 seconds
+    var current=0;
+    var imgs=hero.querySelectorAll('img');
+    if(imgs.length>1){
+      setInterval(function(){
+        imgs[current].classList.remove('active');
+        current=(current+1)%imgs.length;
+        imgs[current].classList.add('active');
+      },2000);
+    }
+  });
+  
+  // Make timeline hero photos clickable
+  document.querySelectorAll('.yhi').forEach(function(h){
+    h.style.cursor='pointer';
+    h.addEventListener('click',function(e){
+      var a=h.querySelector('img.active');
+      if(a){e.stopPropagation();openModal(a.src,'landscape');}
+    });
+  });
+}
+
+// ====== MODAL ======
+function openModal(src,orient){
+  var fc=document.getElementById('flip-card');
+  fc.className='flip-card fc-'+(orient||'landscape');
+  var mi=document.getElementById('modal-img');
+  mi.className='flip-front-img';
+  mi.innerHTML='<img src="'+src+'">';
+  document.getElementById('modal-cap').textContent='';
+  document.getElementById('modal-back').textContent='(nothing written on the back yet)';
+  document.getElementById('modal-date').textContent='';
+  fc.classList.remove('flipped');
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function openFlipReal(el){
+  if(el.getAttribute('data-type')==='video') return;
+  var img=el.querySelector('img');
+  if(!img) return;
+  var orient=el.getAttribute('data-orient')||'landscape';
+  var fc=document.getElementById('flip-card');
+  fc.className='flip-card fc-'+orient;
+  var mi=document.getElementById('modal-img');
+  mi.className='flip-front-img';
+  mi.innerHTML='<img src="'+img.src+'">';
+  document.getElementById('modal-cap').textContent=el.querySelector('.sp-cap')?.textContent||'';
+  document.getElementById('modal-back').textContent='(nothing written on the back yet)';
+  document.getElementById('modal-date').textContent='';
+  fc.classList.remove('flipped');
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(e){
+  if(e.target===document.getElementById('modal')){
+    document.getElementById('modal').classList.remove('open');
+    document.body.style.overflow='';
   }
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){document.getElementById('modal').classList.remove('open');document.body.style.overflow='';}
 });
 
-// ===== NAVIGATION =====
-function navigateTo(page, yearParam) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+// ====== NAV ======
+function nav(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'instant'});
+  setTimeout(initObs,100);
+}
 
-  if (page === 'home') {
-    document.getElementById('page-home').classList.add('active');
-    window.scrollTo(0, 0);
-    window.location.hash = '';
-    currentPage = 'home';
-  } else if (page === 'scrapbook' && yearParam) {
-    document.getElementById('page-scrapbook').classList.add('active');
-    buildScrapbookPage(yearParam);
-    window.scrollTo(0, 0);
-    window.location.hash = `year-${yearParam}`;
-    currentPage = 'scrapbook';
+function openYear(y){
+  var yr=Y.find(function(d){return d.y===y;});
+  if(yr&&yr.hasPhotos&&manifests[y]){
+    buildScrapbookPage(y,yr);
+    nav('sb-year');
+  } else {
+    // Generic placeholder page
+    document.getElementById('sb-yr-num').textContent=y;
+    document.getElementById('sb-yr-hl').textContent=yr?yr.h:y;
+    document.getElementById('sb-yr-ds').textContent=yr?yr.s:'';
+    document.getElementById('sb-yr-spread').innerHTML=
+      '<div style="text-align:center;padding:5rem 2rem">'+
+      '<p style="font-family:var(--fh);font-size:2rem;color:var(--ink4);opacity:.4;margin-bottom:1rem">📷</p>'+
+      '<p style="font-family:var(--fh);font-size:1.4rem;color:var(--ink3);opacity:.45">Upload your photos to fill this scrapbook...</p>'+
+      '<p style="font-family:var(--fb);font-size:.85rem;color:var(--ink4);margin-top:.5rem">Check out 2019 to see a filled scrapbook.</p></div>';
+    nav('sb-year');
   }
 }
 
-// ===== CORKBOARD =====
-function buildCorkboard() {
-  const board = document.getElementById('corkboard');
-  const photos = manifests[CORKBOARD_YEAR];
-  if (!photos) return;
-
-  const photoItems = photos.filter(p => p.type === 'photo');
-
-  CORKBOARD_INDICES.forEach((idx, i) => {
-    if (idx >= photoItems.length) return;
-    const photo = photoItems[idx];
-    const pin = document.createElement('div');
-    pin.className = 'cork-pin';
-    pin.style.setProperty('--rotate', `${CORKBOARD_ROTATIONS[i]}deg`);
-    pin.style.animationDelay = `${i * 0.5}s`;
-
-    pin.innerHTML = `
-      <div class="push-pin ${CORKBOARD_PINS[i]}"></div>
-      <div class="polaroid" onclick="openModal('photos/${CORKBOARD_YEAR}/${photo.filename}', '${photo.orientation}', '${photo.date}')">
-        <img src="photos/${CORKBOARD_YEAR}/${photo.filename}" alt="Family photo" loading="lazy">
-      </div>
-    `;
-    board.appendChild(pin);
-  });
-}
-
-// ===== TIMELINE =====
-function buildTimeline() {
-  const timeline = document.getElementById('timeline');
-
-  for (const [year, data] of Object.entries(YEARS_DATA)) {
-    const entry = document.createElement('div');
-    entry.className = `timeline-entry reveal ${!data.hasPhotos ? 'timeline-placeholder' : ''}`;
-
-    // Photos side
-    let photosHTML = '';
-    if (data.hasPhotos && manifests[year]) {
-      const photos = manifests[year].filter(p => p.type === 'photo');
-      const heroIndices = data.heroPhotos || [0, 1, 2, 3, 4];
-      const heroPhotos = heroIndices.map(i => photos[Math.min(i, photos.length - 1)]);
-
-      photosHTML = `
-        <div class="timeline-photos" data-year="${year}">
-          <div class="timeline-photo-main">
-            ${heroPhotos.map((p, i) => `
-              <div class="timeline-photo-slide ${i === 0 ? 'active' : ''}" data-index="${i}">
-                <div class="polaroid" onclick="openModal('photos/${year}/${p.filename}', '${p.orientation}', '${p.date}')">
-                  <img src="photos/${year}/${p.filename}" alt="Family photo ${year}" loading="lazy">
-                </div>
-              </div>
-            `).join('')}
-          </div>
-          <div class="timeline-thumbs">
-            ${heroPhotos.map((p, i) => `
-              <div class="timeline-thumb ${i === 0 ? 'active' : ''}" data-index="${i}" data-year="${year}" onclick="setTimelineSlide('${year}', ${i})">
-                <img src="photos/${year}/${p.filename}" alt="" loading="lazy">
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-    } else {
-      photosHTML = `
-        <div class="timeline-photos">
-          <div class="timeline-photo-main">
-            <div class="placeholder-text">📷 photos coming soon</div>
-          </div>
-        </div>
-      `;
-    }
-
-    // Content side
-    const btnHTML = data.hasPhotos
-      ? `<button class="timeline-btn" onclick="navigateTo('scrapbook', '${year}')">Open scrapbook →</button>`
-      : `<span class="timeline-btn placeholder">awaiting photos</span>`;
-
-    const contentHTML = `
-      <div class="timeline-content">
-        <div class="timeline-year">${year}</div>
-        <h3 class="timeline-headline">${data.headline}</h3>
-        <p class="timeline-summary">${data.summary}</p>
-        <p class="timeline-note">${data.note}</p>
-        ${btnHTML}
-      </div>
-    `;
-
-    entry.innerHTML = photosHTML + contentHTML;
-    timeline.appendChild(entry);
-  }
-
-  // Start auto-rotation for timeline photos
-  startTimelineRotation();
-}
-
-// Timeline auto-rotation
-let timelineIntervals = {};
-
-function startTimelineRotation() {
-  for (const [year, data] of Object.entries(YEARS_DATA)) {
-    if (!data.hasPhotos) continue;
-    const heroCount = (data.heroPhotos || [0,1,2,3,4]).length;
-    let currentSlide = 0;
-
-    timelineIntervals[year] = setInterval(() => {
-      currentSlide = (currentSlide + 1) % heroCount;
-      setTimelineSlide(year, currentSlide, true);
-    }, 2000);
-  }
-}
-
-function setTimelineSlide(year, index, auto = false) {
-  const container = document.querySelector(`.timeline-photos[data-year="${year}"]`);
-  if (!container) return;
-
-  // Reset auto timer if manual click
-  if (!auto && timelineIntervals[year]) {
-    clearInterval(timelineIntervals[year]);
-    const heroCount = YEARS_DATA[year].heroPhotos?.length || 5;
-    let current = index;
-    timelineIntervals[year] = setInterval(() => {
-      current = (current + 1) % heroCount;
-      setTimelineSlide(year, current, true);
-    }, 2000);
-  }
-
-  container.querySelectorAll('.timeline-photo-slide').forEach(s => s.classList.remove('active'));
-  container.querySelectorAll('.timeline-thumb').forEach(t => t.classList.remove('active'));
-
-  const slide = container.querySelector(`.timeline-photo-slide[data-index="${index}"]`);
-  const thumb = container.querySelector(`.timeline-thumb[data-index="${index}"]`);
-  if (slide) slide.classList.add('active');
-  if (thumb) thumb.classList.add('active');
-}
-
-// ===== SCRAPBOOK PAGE =====
-function buildScrapbookPage(year) {
-  const data = YEARS_DATA[year];
-  const photos = manifests[year];
-  if (!data || !photos) return;
-
-  document.getElementById('scrapbook-year-bg').textContent = year;
-  document.getElementById('scrapbook-headline').textContent = data.headline;
-  document.getElementById('scrapbook-description').textContent = data.scrapbookDesc || data.summary;
-
-  const container = document.getElementById('scrapbook-photos');
-  container.innerHTML = '';
-
+// ====== BUILD SCRAPBOOK PAGE ======
+function buildScrapbookPage(year,yrData){
+  document.getElementById('sb-yr-num').textContent=year;
+  document.getElementById('sb-yr-hl').textContent=yrData.sbHl||yrData.h;
+  document.getElementById('sb-yr-ds').textContent=yrData.sbDs||yrData.s;
+  
+  var spread=document.getElementById('sb-yr-spread');
+  spread.innerHTML='';
+  
+  var photos=manifests[year];
+  if(!photos) return;
+  
+  var layout=SCRAPBOOK_LAYOUTS[year]||{};
+  var rotations=layout.rotations||[];
+  var wPortrait=layout.widths_portrait||[];
+  var wLandscape=layout.widths_landscape||[];
+  var tapePattern=layout.tapePattern||[];
+  var tapeClasses=layout.tapeClasses||['wt-b','wt-s','wt-r','wt-y'];
+  
   // Group by month
-  const months = {};
-  photos.forEach(p => {
-    const m = p.month || 'misc';
-    if (!months[m]) months[m] = [];
+  var months={};
+  var monthOrder=[];
+  photos.forEach(function(p){
+    var m=p.month||'misc';
+    if(!months[m]){months[m]=[];monthOrder.push(m);}
     months[m].push(p);
   });
-
-  const rotations = [-3, 1.5, -1, 2.5, -2, 0.5, -1.5, 3, -0.5, 2, -2.5, 1];
-  const washiClasses = ['washi-blue', 'washi-pink', 'washi-sage', 'washi-yellow', 'washi-lavender'];
-  let photoIndex = 0;
-
-  for (const [month, items] of Object.entries(months)) {
+  
+  var globalIdx=0;
+  var tapeIdx=0;
+  
+  monthOrder.forEach(function(month){
     // Month divider
-    const divider = document.createElement('div');
-    divider.className = 'month-divider';
-    divider.textContent = month;
-    container.appendChild(divider);
-
-    // Photo grid
-    const grid = document.createElement('div');
-    grid.className = 'month-grid';
-
-    items.forEach((item, i) => {
-      const rot = rotations[photoIndex % rotations.length];
-      const showWashi = photoIndex % 3 === 0;
-      const washiClass = washiClasses[photoIndex % washiClasses.length];
-
-      const div = document.createElement('div');
-      div.className = `scrapbook-item ${item.orientation}`;
-      div.style.setProperty('--rotate', `${rot}deg`);
-
-      if (item.type === 'video') {
-        const driveUrl = getDrivePlayerUrl(item.driveId);
-        div.innerHTML = `
-          <div class="polaroid" onclick="window.open('${driveUrl}', '_blank')">
-            ${showWashi ? `<div class="washi-tape ${washiClass}"></div>` : ''}
-            <div style="background: var(--cream); padding: 3rem 1rem; text-align: center;">
-              <span style="font-size: 2rem;">🎬</span>
-            </div>
-            <div class="polaroid-caption"><span class="video-indicator">▶ play video</span></div>
-          </div>
-        `;
+    spread.innerHTML+='<div class="sb-dv"><span class="sb-dv-t">'+month+'</span></div>';
+    
+    var rowHtml='<div class="sb-row">';
+    months[month].forEach(function(item){
+      var rot=rotations[globalIdx%rotations.length]||0;
+      var isPortrait=item.orientation==='portrait';
+      var w=isPortrait?(wPortrait[globalIdx%wPortrait.length]||260):(wLandscape[globalIdx%wLandscape.length]||380);
+      var showTape=tapePattern[globalIdx%tapePattern.length];
+      var tCls=tapeClasses[tapeIdx%tapeClasses.length];
+      
+      if(item.type==='video'){
+        var videoUrl='https://drive.google.com/file/d/'+item.driveId+'/view';
+        rowHtml+='<div class="sp sp-pol" style="width:'+w+'px;padding:6px 6px 28px;transform:rotate('+rot+'deg);position:relative" data-orient="landscape" data-type="video" data-video-url="'+videoUrl+'">';
+        if(showTape){
+          rowHtml+='<div class="wt '+tCls+'" style="width:'+Math.round(w*0.35)+'px;top:-9px;left:50%;position:absolute;transform:translateX(-50%) rotate(-0.6deg)"></div>';
+          tapeIdx++;
+        }
+        rowHtml+='<div style="background:var(--bg3);width:100%;aspect-ratio:'+(isPortrait?'3/4':'4/3')+';display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>';
+        rowHtml+='<span class="sp-cap"></span><span class="vid-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> play</span>';
+        rowHtml+='</div>';
       } else {
-        const imgPath = `photos/${year}/${item.filename}`;
-        div.innerHTML = `
-          <div class="polaroid" onclick="openModal('${imgPath}', '${item.orientation}', '${item.date}')">
-            ${showWashi ? `<div class="washi-tape ${washiClass}"></div>` : ''}
-            <img src="${imgPath}" alt="Family photo" loading="lazy">
-            <div class="polaroid-caption">${item.caption || ''}</div>
-          </div>
-        `;
+        rowHtml+='<div class="sp sp-pol" style="width:'+w+'px;padding:6px 6px 28px;transform:rotate('+rot+'deg);position:relative" onclick="openFlipReal(this)" data-orient="'+item.orientation+'">';
+        if(showTape){
+          rowHtml+='<div class="wt '+tCls+'" style="width:'+Math.round(w*0.35)+'px;top:-9px;left:50%;position:absolute;transform:translateX(-50%) rotate(-0.4deg)"></div>';
+          tapeIdx++;
+        }
+        rowHtml+='<img src="photos/'+year+'/'+item.filename+'" style="width:100%;display:block;border-radius:1px" draggable="false" loading="lazy">';
+        rowHtml+='<span class="sp-cap">'+(item.caption||'')+'</span>';
+        rowHtml+='</div>';
       }
-
-      grid.appendChild(div);
-      photoIndex++;
+      globalIdx++;
     });
-
-    container.appendChild(grid);
-  }
+    rowHtml+='</div>';
+    spread.innerHTML+=rowHtml;
+  });
+  
+  // Wire up video clicks
+  spread.querySelectorAll('[data-type="video"]').forEach(function(el){
+    el.style.cursor='pointer';
+    el.addEventListener('click',function(e){
+      e.stopPropagation();
+      window.open(el.getAttribute('data-video-url'),'_blank');
+    });
+  });
 }
 
-// ===== PHOTO MODAL =====
-function openModal(src, orientation, date) {
-  const modal = document.getElementById('photo-modal');
-  const content = document.getElementById('modal-content');
-  const img = document.getElementById('modal-img');
-  const card = document.getElementById('modal-card');
-  const dateEl = document.getElementById('modal-date');
-
-  img.src = src;
-  content.className = `modal-content ${orientation}`;
-  card.classList.remove('flipped');
-  modalFlipped = false;
-
-  // Format date
-  if (date && date.length >= 8) {
-    const y = date.substring(0, 4);
-    const m = parseInt(date.substring(4, 6));
-    const d = parseInt(date.substring(6, 8));
-    const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    dateEl.textContent = `${monthNames[m]} ${d}, ${y}`;
-  } else {
-    dateEl.textContent = '';
-  }
-
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-
-  // Click card to flip
-  content.onclick = (e) => {
-    e.stopPropagation();
-    modalFlipped = !modalFlipped;
-    card.classList.toggle('flipped');
-  };
-}
-
-function closeModal() {
-  const modal = document.getElementById('photo-modal');
-  modal.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// ===== KEYBOARD NAV =====
-function setupKeyboardNav() {
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      const modal = document.getElementById('photo-modal');
-      if (modal.classList.contains('open')) {
-        closeModal();
-      } else if (currentPage === 'scrapbook') {
-        navigateTo('home');
+// ====== SCROLL ANIMATIONS (exact v11) ======
+function initObs(){
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        var d=e.target.dataset.delay||0;
+        setTimeout(function(){e.target.classList.add('v');},parseInt(d));
+        obs.unobserve(e.target);
       }
+    });
+  },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('[data-a]:not(.v)').forEach(function(el){obs.observe(el);});
+  document.querySelectorAll('.fm:not(.v)').forEach(function(el){obs.observe(el);});
+  document.querySelectorAll('[data-ay]:not(.v)').forEach(function(el){obs.observe(el);});
+}
+
+// Make family headshots clickable
+document.querySelectorAll('.fpol').forEach(function(el){
+  el.addEventListener('click',function(){
+    var img=el.querySelector('img');
+    if(img){
+      var w=img.naturalWidth,h=img.naturalHeight;
+      var o=w>h?'landscape':h>w?'portrait':'square';
+      openModal(img.src,o);
     }
   });
-}
-
-// ===== SCROLL REVEAL =====
-function setupScrollReveal() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        // Stagger the animation
-        const delay = entry.target.dataset.delay || 0;
-        setTimeout(() => {
-          entry.target.classList.add('visible');
-        }, delay);
-        observer.unobserve(entry.target);
-      }
-    });
-  }, {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-  });
-
-  document.querySelectorAll('.reveal').forEach((el, i) => {
-    el.dataset.delay = (i % 4) * 100;
-    observer.observe(el);
-  });
-}
+});
