@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Larkins — A Family Scrapbook</title>
+  <meta name="description" content="A permanent digital family scrapbook for the Larkin family. Our story, our photos, our memories.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=Homemade+Apple&family=Patrick+Hand&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ======== HOMEPAGE ======== -->
+  <div id="page-home" class="page active">
+    
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <h1 class="hero-title">hey, we're<br>the <span class="highlight">larkins</span></h1>
+          <p class="hero-subtitle">A family of four from Liberty Hill, Texas.<br>This is our digital scrapbook — a place to keep<br>the photos, the memories, and the little moments<br>that make us, <em>us</em>.</p>
+        </div>
+        <div class="hero-corkboard">
+          <div class="corkboard" id="corkboard">
+            <!-- 6 polaroids populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEET THE FAMILY -->
+    <section class="meet-family" id="meet-family">
+      <h2 class="section-title handwriting">meet the family</h2>
+      <div class="family-cards">
+        <div class="family-card reveal" style="--rotate: -2deg">
+          <div class="polaroid">
+            <div class="washi-tape washi-blue"></div>
+            <img src="photos/headshots/tj.jpg" alt="TJ Larkin" loading="lazy">
+            <div class="polaroid-caption">TJ</div>
+          </div>
+          <p class="card-role">dad / builder of things</p>
+          <p class="card-desc">Media entrepreneur, golf enthusiast, and the one most likely to automate the family chore chart.</p>
+        </div>
+        <div class="family-card reveal" style="--rotate: 1.5deg; animation-delay: 0.1s">
+          <div class="polaroid">
+            <div class="washi-tape washi-pink"></div>
+            <img src="photos/headshots/ashley.jpg" alt="Ashley Larkin" loading="lazy">
+            <div class="polaroid-caption">Ashley</div>
+          </div>
+          <p class="card-role">mom / the real boss</p>
+          <p class="card-desc">Keeps everything running. Patient beyond measure. Possibly powered by iced coffee and sheer willpower.</p>
+        </div>
+        <div class="family-card reveal" style="--rotate: -1deg; animation-delay: 0.2s">
+          <div class="polaroid">
+            <div class="washi-tape washi-sage"></div>
+            <img src="photos/headshots/noelle.jpg" alt="Noelle Larkin" loading="lazy">
+            <div class="polaroid-caption">Noelle</div>
+          </div>
+          <p class="card-role">daughter / age 9</p>
+          <p class="card-desc">Creative, curious, and full of opinions. Loves art, animals, and being in charge of her little brother.</p>
+        </div>
+        <div class="family-card reveal" style="--rotate: 2deg; animation-delay: 0.3s">
+          <div class="polaroid">
+            <div class="washi-tape washi-yellow"></div>
+            <img src="photos/headshots/charlie.jpg" alt="Charlie Larkin" loading="lazy">
+            <div class="polaroid-caption">Charlie</div>
+          </div>
+          <p class="card-role">son / age 6</p>
+          <p class="card-desc">Pure energy in a small body. Loves soccer, Converse shoes, and laughing at his own jokes.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- OUR STORY TIMELINE -->
+    <section class="timeline-section" id="our-story">
+      <h2 class="section-title handwriting">our story</h2>
+      <p class="section-intro">From the beginning to now — year by year, memory by memory.</p>
+      <div class="timeline" id="timeline">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- FAMILY VALUES -->
+    <section class="values-section" id="values">
+      <div class="values-hero-frame reveal">
+        <p class="values-hero-text">"The Journey Matters"</p>
+      </div>
+      <div class="values-grid">
+        <div class="value-card reveal" style="--bg: var(--blush)">
+          <div class="value-icon">💛</div>
+          <h3>Lead With Kindness</h3>
+          <p>Be gentle with others. The world is hard enough. A kind word costs nothing and changes everything.</p>
+        </div>
+        <div class="value-card reveal" style="--bg: var(--dusty-blue)">
+          <div class="value-icon">💪</div>
+          <h3>Fit Minds & Fit Bodies</h3>
+          <p>Read books. Play outside. Take care of the body and brain you were given — they're the only ones you get.</p>
+        </div>
+        <div class="value-card reveal" style="--bg: var(--butter-yellow)">
+          <div class="value-icon">🔍</div>
+          <h3>Always Be Curious</h3>
+          <p>Ask questions. Try new things. The best adventures start with "I wonder what would happen if..."</p>
+        </div>
+        <div class="value-card reveal" style="--bg: var(--lavender)">
+          <div class="value-icon">🌱</div>
+          <h3>Grit Makes Us Grow</h3>
+          <p>Hard things are worth doing. When you fall down, you get back up. That's how Larkins are built.</p>
+        </div>
+        <div class="value-card reveal" style="--bg: var(--sage)">
+          <div class="value-icon">🤝</div>
+          <h3>We Are One Team</h3>
+          <p>We show up for each other. We celebrate together, we struggle together, and we figure it out — together.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUOTE STRIP -->
+    <section class="quote-strip">
+      <p class="family-motto">"We figure it out."</p>
+      <p class="motto-label">— family motto</p>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <p class="footer-heart">♥</p>
+      <p class="footer-text">Made with love, caffeine, and questionable HTML</p>
+    </footer>
+  </div>
+
+  <!-- ======== SCRAPBOOK YEAR PAGES ======== -->
+  <div id="page-scrapbook" class="page">
+    <button class="back-btn" onclick="navigateTo('home')">← Back to story</button>
+    <div class="scrapbook-header">
+      <div class="scrapbook-year-bg" id="scrapbook-year-bg"></div>
+      <h1 class="scrapbook-headline handwriting" id="scrapbook-headline"></h1>
+      <p class="scrapbook-description" id="scrapbook-description"></p>
+    </div>
+    <div class="scrapbook-photos" id="scrapbook-photos">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- ======== PHOTO MODAL ======== -->
+  <div class="photo-modal" id="photo-modal">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-content" id="modal-content">
+      <div class="modal-card" id="modal-card">
+        <div class="modal-front" id="modal-front">
+          <img id="modal-img" src="" alt="">
+        </div>
+        <div class="modal-back" id="modal-back">
+          <div class="notebook-lines"></div>
+          <p class="back-text">This moment matters.</p>
+          <p class="back-date" id="modal-date"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
