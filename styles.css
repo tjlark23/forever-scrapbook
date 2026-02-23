@@ -222,3 +222,66 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   .cv-grid .cv-card:nth-child(5){grid-column:1/-1}
   .cv-hero-inner{padding:2rem 1.5rem}
 }
+
+/* ============ FIXES ============ */
+
+/* Meet the Family: uniform photo heights */
+.fpol img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 1px;
+}
+.fpol {
+  display: flex;
+  flex-direction: column;
+}
+.fg .fm .fpol {
+  aspect-ratio: auto;
+}
+/* Force all family photos to same visible height via container */
+.fg .fm .fpol img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Modal: limit very tall portrait photos */
+.flip-front-img img {
+  max-height: 80vh;
+  width: auto;
+  max-width: 100%;
+}
+.flip-card.fc-portrait .flip-front-img img {
+  max-height: 78vh;
+}
+
+/* Journey Matters frame: stronger visual treatment */
+.cv-hero-frame {
+  border: 2px solid var(--bg4);
+  padding: 4px;
+  box-shadow: 
+    0 4px 20px rgba(44,37,32,.1),
+    0 1px 4px rgba(0,0,0,.05),
+    inset 0 0 0 1px rgba(44,37,32,.06);
+  position: relative;
+}
+.cv-hero-frame::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 1.5px solid var(--bg4);
+  pointer-events: none;
+}
+.cv-hero-inner {
+  background: linear-gradient(135deg, var(--bg2) 0%, #F8F5EE 50%, var(--bg2) 100%);
+  border: 1px solid rgba(44,37,32,.04);
+}
+
+/* Video thumbnails in scrapbook */
+.sp[data-type="video"] img {
+  width: 100%;
+  display: block;
+  border-radius: 1px;
+}

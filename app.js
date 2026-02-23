@@ -37,7 +37,8 @@ function buildCorkboard(){
   if(!photos) return;
   const photoItems=photos.filter(function(p){return p.type==='photo';});
   // Pick 6 spread photos
-  const indices=[0,3,5,8,12,16];
+  // Pick a good mix: landscape + normal portraits, avoid super-tall photos
+  const indices=[0,7,4,12,8,17];
   
   CORK_POSITIONS.forEach(function(pos,i){
     var idx=indices[i];
@@ -251,12 +252,17 @@ function buildScrapbookPage(year,yrData){
       
       if(item.type==='video'){
         var videoUrl='https://drive.google.com/file/d/'+item.driveId+'/view';
+        var thumbSrc=item.thumbnail?'photos/'+year+'/'+item.thumbnail:'';
         rowHtml+='<div class="sp sp-pol" style="width:'+w+'px;padding:6px 6px 28px;transform:rotate('+rot+'deg);position:relative" data-orient="landscape" data-type="video" data-video-url="'+videoUrl+'">';
         if(showTape){
           rowHtml+='<div class="wt '+tCls+'" style="width:'+Math.round(w*0.35)+'px;top:-9px;left:50%;position:absolute;transform:translateX(-50%) rotate(-0.6deg)"></div>';
           tapeIdx++;
         }
-        rowHtml+='<div style="background:var(--bg3);width:100%;aspect-ratio:'+(isPortrait?'3/4':'4/3')+';display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>';
+        if(thumbSrc){
+          rowHtml+='<img src="'+thumbSrc+'" style="width:100%;display:block;border-radius:1px" draggable="false" loading="lazy">';
+        } else {
+          rowHtml+='<div style="background:var(--bg3);width:100%;aspect-ratio:'+(isPortrait?'3/4':'4/3')+';display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>';
+        }
         rowHtml+='<span class="sp-cap"></span><span class="vid-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> play</span>';
         rowHtml+='</div>';
       } else {

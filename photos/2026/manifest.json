@@ -48,7 +48,8 @@
     "date": "20260118",
     "type": "video",
     "caption": "",
-    "driveId": "1avGoJX-yJqCXpMPq4Qb-b0JNUDdXPiH9"
+    "driveId": "1avGoJX-yJqCXpMPq4Qb-b0JNUDdXPiH9",
+    "thumbnail": "PXL_20260118_191042188_thumb.jpg"
   },
   {
     "filename": "PXL_20260119_203725136.PORTRAIT_2.jpg",
@@ -85,16 +86,6 @@
     "width": 1600,
     "height": 1435,
     "orientation": "landscape",
-    "month": "january",
-    "date": "20260125",
-    "type": "photo",
-    "caption": ""
-  },
-  {
-    "filename": "IMG_20260125_204711_b.jpg",
-    "width": 533,
-    "height": 1600,
-    "orientation": "portrait",
     "month": "january",
     "date": "20260125",
     "type": "photo",
@@ -219,6 +210,7 @@
     "date": "20260222",
     "type": "video",
     "caption": "",
-    "driveId": "1wbGcxSEvda9VGbSWPMbaRUHezj7vPuab"
+    "driveId": "1wbGcxSEvda9VGbSWPMbaRUHezj7vPuab",
+    "thumbnail": "PXL_20260222_003240829_thumb.jpg"
   }
 ]
