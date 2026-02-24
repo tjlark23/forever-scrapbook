@@ -163,8 +163,11 @@ function openFlipReal(el){
   mi.className='flip-front-img';
   mi.innerHTML='<img src="'+img.src+'">';
   document.getElementById('modal-cap').textContent=el.querySelector('.sp-cap')?.textContent||'';
-  document.getElementById('modal-back').textContent='(nothing written on the back yet)';
-  document.getElementById('modal-date').textContent='';
+  // Try to get back text from data attribute
+  var backText=el.getAttribute('data-back')||'(nothing written on the back yet)';
+  var dateText=el.getAttribute('data-date')||'';
+  document.getElementById('modal-back').textContent=backText;
+  document.getElementById('modal-date').textContent=dateText;
   fc.classList.remove('flipped');
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow='hidden';
@@ -266,7 +269,7 @@ function buildScrapbookPage(year,yrData){
         rowHtml+='<span class="sp-cap"></span><span class="vid-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> play</span>';
         rowHtml+='</div>';
       } else {
-        rowHtml+='<div class="sp sp-pol" style="width:'+w+'px;padding:6px 6px 28px;transform:rotate('+rot+'deg);position:relative" onclick="openFlipReal(this)" data-orient="'+item.orientation+'">';
+        rowHtml+='<div class="sp sp-pol" style="width:'+w+'px;padding:6px 6px 28px;transform:rotate('+rot+'deg);position:relative" onclick="openFlipReal(this)" data-orient="'+item.orientation+'" data-back="'+(item.backText||'(nothing written on the back yet)').replace(/"/g,'&quot;')+'" data-date="'+formatDate(item.date)+'">';
         if(showTape){
           rowHtml+='<div class="wt '+tCls+'" style="width:'+Math.round(w*0.35)+'px;top:-9px;left:50%;position:absolute;transform:translateX(-50%) rotate(-0.4deg)"></div>';
           tapeIdx++;
@@ -318,3 +321,13 @@ document.querySelectorAll('.fpol').forEach(function(el){
     }
   });
 });
+
+// ====== HELPERS ======
+function formatDate(d){
+  if(!d||d.length<8) return '';
+  var months=['','January','February','March','April','May','June','July','August','September','October','November','December'];
+  var y=d.substring(0,4);
+  var m=parseInt(d.substring(4,6));
+  var day=parseInt(d.substring(6,8));
+  return months[m]+' '+day+', '+y;
+}

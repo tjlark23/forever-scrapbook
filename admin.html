@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scrapbook Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FDFCFA; --bg2: #FAF7F2; --bg3: #F5F1EA; --bg4: #EDE8DF;
+  --ink: #2C2520; --ink2: #5C524A; --ink3: #8A7F75; --ink4: #B8AFA6;
+  --accent: #5A8FA8; --accent-light: #E8F0F4;
+  --success: #6A9F6A; --success-light: #E8F4E8;
+  --warn: #D4524A; --warn-light: #F8E8E8;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--ink); line-height:1.6; }
+
+/* Login */
+.login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:2rem; }
+.login-box { background:white; padding:3rem; border-radius:8px; box-shadow:0 4px 20px rgba(44,37,32,.08); max-width:380px; width:100%; text-align:center; }
+.login-box h1 { font-family:'Caveat',cursive; font-size:2rem; margin-bottom:.5rem; }
+.login-box p { color:var(--ink3); font-size:.9rem; margin-bottom:2rem; }
+.login-box input { width:100%; padding:.75rem 1rem; border:2px solid var(--bg4); border-radius:6px; font-size:1rem; font-family:inherit; outline:none; transition:border .3s; }
+.login-box input:focus { border-color:var(--accent); }
+.login-box button { width:100%; margin-top:1rem; padding:.75rem; background:var(--ink); color:white; border:none; border-radius:6px; font-size:1rem; font-family:inherit; cursor:pointer; transition:background .3s; }
+.login-box button:hover { background:var(--accent); }
+.login-error { color:var(--warn); font-size:.85rem; margin-top:.75rem; display:none; }
+
+/* Layout */
+.admin { display:none; }
+.admin.active { display:block; }
+.admin-header { background:white; border-bottom:1px solid var(--bg4); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.admin-header h1 { font-family:'Caveat',cursive; font-size:1.5rem; }
+.admin-header .actions { display:flex; gap:.75rem; align-items:center; }
+.status { font-size:.8rem; color:var(--ink3); }
+.status.saved { color:var(--success); }
+
+.admin-nav { background:white; border-bottom:1px solid var(--bg4); padding:0 2rem; display:flex; gap:0; overflow-x:auto; }
+.admin-nav button { padding:.75rem 1.5rem; background:none; border:none; border-bottom:3px solid transparent; font-family:inherit; font-size:.9rem; color:var(--ink3); cursor:pointer; white-space:nowrap; transition:all .2s; }
+.admin-nav button:hover { color:var(--ink); }
+.admin-nav button.active { color:var(--ink); border-bottom-color:var(--accent); font-weight:500; }
+
+.admin-content { max-width:1000px; margin:0 auto; padding:2rem; }
+
+/* Buttons */
+.btn { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1.2rem; border-radius:6px; font-family:inherit; font-size:.85rem; cursor:pointer; transition:all .2s; border:none; }
+.btn-primary { background:var(--accent); color:white; }
+.btn-primary:hover { background:#4A7F98; }
+.btn-secondary { background:white; color:var(--ink); border:1.5px solid var(--bg4); }
+.btn-secondary:hover { border-color:var(--ink3); }
+.btn-danger { background:var(--warn-light); color:var(--warn); }
+.btn-danger:hover { background:var(--warn); color:white; }
+.btn-export { background:var(--success); color:white; }
+.btn-export:hover { background:#5A8F5A; }
+
+/* Cards */
+.card { background:white; border-radius:8px; border:1px solid var(--bg4); margin-bottom:1.25rem; overflow:hidden; }
+.card-header { padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; }
+.card-header:hover { background:var(--bg2); }
+.card-header h3 { font-size:1rem; font-weight:500; }
+.card-header .year-badge { font-family:'Caveat',cursive; font-size:1.3rem; font-weight:600; color:var(--accent); min-width:50px; }
+.card-header .meta { font-size:.8rem; color:var(--ink3); }
+.card-header .chevron { transition:transform .2s; color:var(--ink4); }
+.card-header.open .chevron { transform:rotate(90deg); }
+.card-body { display:none; padding:1.25rem; border-top:1px solid var(--bg4); }
+.card-body.open { display:block; }
+
+/* Form fields */
+.field { margin-bottom:1rem; }
+.field label { display:block; font-size:.8rem; font-weight:500; color:var(--ink3); margin-bottom:.3rem; text-transform:uppercase; letter-spacing:.05em; }
+.field input, .field textarea { width:100%; padding:.6rem .8rem; border:1.5px solid var(--bg4); border-radius:5px; font-family:inherit; font-size:.9rem; outline:none; transition:border .2s; background:var(--bg); }
+.field input:focus, .field textarea:focus { border-color:var(--accent); background:white; }
+.field textarea { resize:vertical; min-height:70px; }
+.field-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.field .hint { font-size:.75rem; color:var(--ink4); margin-top:.2rem; }
+
+/* Photo grid for captions */
+.photo-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; }
+.photo-card { background:var(--bg2); border-radius:6px; overflow:hidden; border:1.5px solid var(--bg4); transition:border .2s; }
+.photo-card:focus-within { border-color:var(--accent); }
+.photo-card img { width:100%; height:140px; object-fit:cover; object-position:center top; }
+.photo-card .photo-fields { padding:.75rem; }
+.photo-card .photo-fields input,
+.photo-card .photo-fields textarea { font-size:.8rem; padding:.4rem .6rem; }
+.photo-card .photo-fields label { font-size:.7rem; }
+.photo-card .photo-fields textarea { min-height:50px; }
+.photo-card .photo-meta { font-size:.7rem; color:var(--ink4); padding:0 .75rem .5rem; }
+
+/* Family section */
+.family-member { display:flex; gap:1.5rem; padding:1.25rem; border-bottom:1px solid var(--bg3); }
+.family-member:last-child { border-bottom:none; }
+.family-member img { width:80px; height:100px; object-fit:cover; object-position:top center; border-radius:4px; flex-shrink:0; }
+.family-fields { flex:1; }
+
+/* Hero/site settings */
+.site-preview { background:var(--bg2); border-radius:6px; padding:1.5rem; margin-bottom:1.5rem; text-align:center; }
+.site-preview h2 { font-family:'Caveat',cursive; font-size:1.8rem; margin-bottom:.25rem; }
+
+/* Toast */
+.toast { position:fixed; bottom:2rem; right:2rem; background:var(--ink); color:white; padding:.75rem 1.5rem; border-radius:6px; font-size:.9rem; opacity:0; transform:translateY(10px); transition:all .3s; pointer-events:none; z-index:9999; }
+.toast.show { opacity:1; transform:translateY(0); }
+
+/* Section panels */
+.panel { display:none; }
+.panel.active { display:block; }
+
+/* Export area */
+.export-area { background:var(--bg2); border-radius:6px; padding:1.5rem; margin-top:1.5rem; }
+.export-area pre { background:var(--ink); color:#e8e0d8; padding:1rem; border-radius:4px; font-size:.75rem; overflow-x:auto; max-height:300px; overflow-y:auto; margin-top:.75rem; white-space:pre-wrap; word-break:break-all; }
+
+@media(max-width:600px){
+  .field-row { grid-template-columns:1fr; }
+  .family-member { flex-direction:column; gap:.75rem; }
+  .family-member img { width:60px; height:75px; }
+  .photo-grid { grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); }
+  .admin-content { padding:1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <h1>📷 Scrapbook Admin</h1>
+    <p>Enter the password to edit your family scrapbook.</p>
+    <input type="password" id="password-input" placeholder="Password" onkeydown="if(event.key==='Enter')attemptLogin()">
+    <button onclick="attemptLogin()">Enter</button>
+    <p class="login-error" id="login-error">Wrong password. Try again.</p>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="admin" id="admin">
+  <div class="admin-header">
+    <h1>📷 Scrapbook Admin</h1>
+    <div class="actions">
+      <span class="status" id="save-status"></span>
+      <button class="btn btn-export" onclick="exportAll()">⬇ Export Files</button>
+      <button class="btn btn-secondary" onclick="location.href='/'">View Site →</button>
+    </div>
+  </div>
+
+  <div class="admin-nav">
+    <button class="active" onclick="switchPanel('timeline',this)">Timeline</button>
+    <button onclick="switchPanel('family',this)">Family</button>
+    <button onclick="switchPanel('photos',this)">Photo Captions</button>
+    <button onclick="switchPanel('site',this)">Site Settings</button>
+    <button onclick="switchPanel('export',this)">Export</button>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- TIMELINE PANEL -->
+    <div class="panel active" id="panel-timeline">
+      <p style="color:var(--ink3);font-size:.9rem;margin-bottom:1.5rem">Edit the headline, description, and handwritten note for each year. These appear on the main timeline.</p>
+      <div id="timeline-cards"></div>
+    </div>
+
+    <!-- FAMILY PANEL -->
+    <div class="panel" id="panel-family">
+      <p style="color:var(--ink3);font-size:.9rem;margin-bottom:1.5rem">Edit the "Meet the Family" section — names, roles, captions, and descriptions.</p>
+      <div class="card">
+        <div class="card-body open" id="family-fields">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- PHOTO CAPTIONS PANEL -->
+    <div class="panel" id="panel-photos">
+      <p style="color:var(--ink3);font-size:.9rem;margin-bottom:1rem">Add captions and back-of-photo notes. Captions show under polaroids. Back text shows when someone flips a photo.</p>
+      <div style="margin-bottom:1rem">
+        <select id="photo-year-select" onchange="loadPhotoYear(this.value)" style="padding:.5rem .8rem;border:1.5px solid var(--bg4);border-radius:5px;font-family:inherit;font-size:.9rem;background:white">
+        </select>
+      </div>
+      <div class="photo-grid" id="photo-grid"></div>
+    </div>
+
+    <!-- SITE SETTINGS PANEL -->
+    <div class="panel" id="panel-site">
+      <p style="color:var(--ink3);font-size:.9rem;margin-bottom:1.5rem">Edit hero text, core values, quote, and footer.</p>
+      
+      <div class="card">
+        <div class="card-header open" onclick="toggleCard(this)">
+          <h3>Hero Section</h3>
+          <span class="chevron">›</span>
+        </div>
+        <div class="card-body open">
+          <div class="field"><label>Eyebrow text</label><input id="site-hero-ey" value="welcome to"></div>
+          <div class="field"><label>Title</label><input id="site-hero-title" value="The Larkins"></div>
+          <div class="field"><label>Subtitle</label><textarea id="site-hero-sub">our little corner of the world — told in photos, sticky notes, and too many tacos</textarea></div>
+          <div class="field"><label>Location line</label><input id="site-hero-loc" value="Liberty Hill, Texas · Est. 2013"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <h3>Core Values</h3>
+          <span class="chevron">›</span>
+        </div>
+        <div class="card-body">
+          <div class="field"><label>North Star headline</label><input id="site-cv-headline" value="The Journey Matters"></div>
+          <div class="field"><label>North Star description</label><textarea id="site-cv-desc">It's not about the destination. It's about who we become along the way — together.</textarea></div>
+          <div id="values-fields"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <h3>Quote & Footer</h3>
+          <span class="chevron">›</span>
+        </div>
+        <div class="card-body">
+          <div class="field"><label>Quote</label><textarea id="site-quote">"We figure it out." — applies to flat tires, homework, and what's for dinner.</textarea></div>
+          <div class="field"><label>Footer line 1</label><input id="site-footer1" value="Made with love, caffeine, and questionable HTML."></div>
+          <div class="field"><label>Footer line 2</label><input id="site-footer2" value="The Larkins · Liberty Hill, TX"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPORT PANEL -->
+    <div class="panel" id="panel-export">
+      <p style="color:var(--ink3);font-size:.9rem;margin-bottom:1.5rem">Export your edits as files you can push to the site via Claude Code. This generates updated <code>data.js</code> and manifest JSON files.</p>
+      
+      <button class="btn btn-export" onclick="exportAll()" style="font-size:1rem;padding:.75rem 2rem">⬇ Generate & Download All Files</button>
+
+      <div class="export-area" id="export-preview" style="display:none">
+        <h4 style="margin-bottom:.5rem">Preview: data.js</h4>
+        <pre id="export-data-preview"></pre>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ====== CONFIG ======
+// Simple password hash (not security, just a gate)
+const PASS_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // "admin"
+
+// ====== STATE ======
+let yearData = [];
+let manifests = {};
+let familyData = {};
+let siteData = {};
+let valuesData = [];
+
+// ====== LOGIN ======
+async function hashPassword(pw) {
+  const enc = new TextEncoder().encode(pw);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function attemptLogin() {
+  const pw = document.getElementById('password-input').value;
+  const hash = await hashPassword(pw);
+  if (hash === PASS_HASH) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin').classList.add('active');
+    sessionStorage.setItem('admin-auth', '1');
+    loadAllData();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('password-input').value = '';
+    document.getElementById('password-input').focus();
+  }
+}
+
+// Auto-login if already authenticated this session
+if (sessionStorage.getItem('admin-auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin').classList.add('active');
+  // Load data after DOM ready
+  setTimeout(loadAllData, 0);
+}
+
+// ====== DATA LOADING ======
+async function loadAllData() {
+  // Load data.js by fetching it as text and extracting the Y array
+  try {
+    const resp = await fetch('data.js');
+    const text = await resp.text();
+    // Extract Y array using eval in a controlled way
+    const fn = new Function(text + '; return Y;');
+    yearData = fn();
+  } catch(e) {
+    console.error('Failed to load data.js', e);
+    yearData = [];
+  }
+
+  // Load manifests
+  for (const yr of yearData) {
+    if (yr.hasPhotos) {
+      try {
+        const r = await fetch('photos/' + yr.y + '/manifest.json');
+        if (r.ok) manifests[yr.y] = await r.json();
+      } catch(e) {}
+    }
+  }
+
+  // Default family data (editable)
+  familyData = {
+    members: [
+      { id: 'tj', name: 'TJ', role: 'dad · builder · taco enthusiast', caption: 'the dreamer', photo: 'photos/headshots/tj.jpg' },
+      { id: 'ashley', name: 'Ashley', role: 'mom · the real boss · keeper of calm', caption: 'the anchor', photo: 'photos/headshots/ashley.jpg' },
+      { id: 'noelle', name: 'Noelle', role: 'age 9 · big sister · bookworm', caption: 'the wise one', photo: 'photos/headshots/noelle.jpg' },
+      { id: 'charlie', name: 'Charlie', role: 'age 6 · little brother · full volume', caption: 'the wild card', photo: 'photos/headshots/charlie.jpg' }
+    ]
+  };
+
+  valuesData = [
+    { icon: '❤', title: 'Lead With Kindness', desc: 'In every room, every conversation, every moment — kindness first.' },
+    { icon: '⚛', title: 'Fit Minds & Fit Bodies', desc: 'We take care of ourselves so we can take care of each other.' },
+    { icon: '✨', title: 'Always Be Curious', desc: 'Ask why. Try new things. Never stop learning.' },
+    { icon: '⚖', title: 'Grit Makes Us Grow', desc: 'Hard things make strong people. We don\'t quit.' },
+    { icon: '★', title: 'We Are One Team', desc: 'Nobody goes alone. We show up for each other, always.' }
+  ];
+
+  // Try loading saved edits from localStorage
+  try {
+    const saved = localStorage.getItem('scrapbook-admin-data');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.familyData) familyData = parsed.familyData;
+      if (parsed.valuesData) valuesData = parsed.valuesData;
+      if (parsed.manifests) {
+        // Merge caption/backText edits into loaded manifests
+        for (const [year, items] of Object.entries(parsed.manifests)) {
+          if (manifests[year]) {
+            for (const savedItem of items) {
+              const match = manifests[year].find(m => m.filename === savedItem.filename);
+              if (match) {
+                if (savedItem.caption) match.caption = savedItem.caption;
+                if (savedItem.backText) match.backText = savedItem.backText;
+              }
+            }
+          }
+        }
+      }
+      // Merge year data edits
+      if (parsed.yearEdits) {
+        for (const edit of parsed.yearEdits) {
+          const yr = yearData.find(y => y.y === edit.y);
+          if (yr) {
+            if (edit.h) yr.h = edit.h;
+            if (edit.s) yr.s = edit.s;
+            if (edit.n) yr.n = edit.n;
+            if (edit.sbHl) yr.sbHl = edit.sbHl;
+            if (edit.sbDs) yr.sbDs = edit.sbDs;
+          }
+        }
+      }
+    }
+  } catch(e) {}
+
+  renderTimeline();
+  renderFamily();
+  renderPhotoYearSelect();
+  renderValues();
+}
+
+// ====== SAVE ======
+function saveAll() {
+  // Read all current field values
+  readTimelineFields();
+  readFamilyFields();
+  readValuesFields();
+
+  const saveData = {
+    yearEdits: yearData.map(yr => ({ y: yr.y, h: yr.h, s: yr.s, n: yr.n, sbHl: yr.sbHl || '', sbDs: yr.sbDs || '' })),
+    familyData: familyData,
+    valuesData: valuesData,
+    manifests: {}
+  };
+
+  // Save caption/backText edits
+  for (const [year, items] of Object.entries(manifests)) {
+    saveData.manifests[year] = items.map(i => ({
+      filename: i.filename,
+      caption: i.caption || '',
+      backText: i.backText || ''
+    }));
+  }
+
+  localStorage.setItem('scrapbook-admin-data', JSON.stringify(saveData));
+  showToast('Saved to browser');
+  document.getElementById('save-status').textContent = 'Saved ✓';
+  document.getElementById('save-status').className = 'status saved';
+}
+
+// Auto-save on field changes
+let saveTimeout;
+function autoSave() {
+  clearTimeout(saveTimeout);
+  document.getElementById('save-status').textContent = 'Unsaved changes...';
+  document.getElementById('save-status').className = 'status';
+  saveTimeout = setTimeout(saveAll, 1500);
+}
+
+// ====== RENDER: TIMELINE ======
+function renderTimeline() {
+  const container = document.getElementById('timeline-cards');
+  container.innerHTML = '';
+
+  yearData.forEach((yr, i) => {
+    const hasPhotos = yr.hasPhotos ? '<span style="color:var(--success);font-size:.75rem">📷 has photos</span>' : '<span style="font-size:.75rem;color:var(--ink4)">no photos yet</span>';
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="year-badge">${yr.y}</span>
+        <h3 style="flex:1;margin:0 1rem">${yr.h}</h3>
+        ${hasPhotos}
+        <span class="chevron" style="margin-left:.75rem">›</span>
+      </div>
+      <div class="card-body">
+        <div class="field"><label>Headline</label><input value="${escHtml(yr.h)}" data-year="${yr.y}" data-field="h" oninput="autoSave()"></div>
+        <div class="field"><label>Description</label><textarea data-year="${yr.y}" data-field="s" oninput="autoSave()">${escHtml(yr.s)}</textarea></div>
+        <div class="field"><label>Handwritten note</label><input value="${escHtml(yr.n)}" data-year="${yr.y}" data-field="n" oninput="autoSave()"><p class="hint">Shows in italic "Homemade Apple" font — keep it short and personal</p></div>
+        ${yr.hasPhotos ? `
+        <div class="field"><label>Scrapbook page headline</label><input value="${escHtml(yr.sbHl || yr.h)}" data-year="${yr.y}" data-field="sbHl" oninput="autoSave()"></div>
+        <div class="field"><label>Scrapbook page description</label><textarea data-year="${yr.y}" data-field="sbDs" oninput="autoSave()">${escHtml(yr.sbDs || yr.s)}</textarea></div>
+        ` : ''}
+        <div class="field-row">
+          <div class="field"><label>Photo count</label><input type="number" value="${yr.ct}" data-year="${yr.y}" data-field="ct" oninput="autoSave()"><p class="hint">Shown as "X photos" badge on timeline</p></div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function readTimelineFields() {
+  document.querySelectorAll('[data-year][data-field]').forEach(el => {
+    const yr = yearData.find(y => y.y === el.dataset.year);
+    if (yr) {
+      const val = el.value;
+      if (el.dataset.field === 'ct') yr.ct = parseInt(val) || 0;
+      else yr[el.dataset.field] = val;
+    }
+  });
+}
+
+// ====== RENDER: FAMILY ======
+function renderFamily() {
+  const container = document.getElementById('family-fields');
+  container.innerHTML = '';
+
+  familyData.members.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'family-member';
+    div.innerHTML = `
+      <img src="${m.photo}" alt="${m.name}">
+      <div class="family-fields">
+        <div class="field-row">
+          <div class="field"><label>Name</label><input value="${escHtml(m.name)}" data-family="${i}" data-ff="name" oninput="autoSave()"></div>
+          <div class="field"><label>Polaroid caption</label><input value="${escHtml(m.caption)}" data-family="${i}" data-ff="caption" oninput="autoSave()"><p class="hint">Shows at bottom of polaroid (e.g. "the dreamer")</p></div>
+        </div>
+        <div class="field"><label>Role line</label><input value="${escHtml(m.role)}" data-family="${i}" data-ff="role" oninput="autoSave()"><p class="hint">Shows below name (e.g. "dad · builder · taco enthusiast")</p></div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function readFamilyFields() {
+  document.querySelectorAll('[data-family][data-ff]').forEach(el => {
+    const idx = parseInt(el.dataset.family);
+    if (familyData.members[idx]) {
+      familyData.members[idx][el.dataset.ff] = el.value;
+    }
+  });
+}
+
+// ====== RENDER: PHOTOS ======
+function renderPhotoYearSelect() {
+  const select = document.getElementById('photo-year-select');
+  select.innerHTML = '';
+  for (const [year] of Object.entries(manifests)) {
+    select.innerHTML += `<option value="${year}">${year}</option>`;
+  }
+  if (select.options.length > 0) {
+    // Default to most recent
+    select.value = select.options[select.options.length - 1].value;
+    loadPhotoYear(select.value);
+  }
+}
+
+function loadPhotoYear(year) {
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = '';
+  const items = manifests[year];
+  if (!items) return;
+
+  items.forEach((item, i) => {
+    if (item.type === 'video') return; // Skip videos for now
+
+    const card = document.createElement('div');
+    card.className = 'photo-card';
+    card.innerHTML = `
+      <img src="photos/${year}/${item.filename}" alt="" loading="lazy">
+      <div class="photo-fields">
+        <div class="field"><label>Caption</label><input value="${escHtml(item.caption || '')}" data-pyear="${year}" data-pidx="${i}" data-pf="caption" oninput="autoSave()" placeholder="Under the polaroid..."></div>
+        <div class="field"><label>Back of photo</label><textarea data-pyear="${year}" data-pidx="${i}" data-pf="backText" oninput="autoSave()" placeholder="What's the story behind this photo?">${escHtml(item.backText || '')}</textarea></div>
+      </div>
+      <div class="photo-meta">${item.filename} · ${item.width}×${item.height}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function readPhotoFields() {
+  document.querySelectorAll('[data-pyear][data-pidx][data-pf]').forEach(el => {
+    const year = el.dataset.pyear;
+    const idx = parseInt(el.dataset.pidx);
+    const field = el.dataset.pf;
+    if (manifests[year] && manifests[year][idx]) {
+      manifests[year][idx][field] = el.value;
+    }
+  });
+}
+
+// ====== RENDER: VALUES ======
+function renderValues() {
+  const container = document.getElementById('values-fields');
+  container.innerHTML = '';
+
+  valuesData.forEach((v, i) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:1rem 0;border-top:1px solid var(--bg3);margin-top:.5rem';
+    div.innerHTML = `
+      <div class="field-row">
+        <div class="field"><label>Value ${i+1} title</label><input value="${escHtml(v.title)}" data-val="${i}" data-vf="title" oninput="autoSave()"></div>
+        <div class="field"><label>Icon</label><input value="${v.icon}" data-val="${i}" data-vf="icon" oninput="autoSave()" style="width:60px"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea data-val="${i}" data-vf="desc" oninput="autoSave()">${escHtml(v.desc)}</textarea></div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function readValuesFields() {
+  document.querySelectorAll('[data-val][data-vf]').forEach(el => {
+    const idx = parseInt(el.dataset.val);
+    if (valuesData[idx]) valuesData[idx][el.dataset.vf] = el.value;
+  });
+}
+
+// ====== EXPORT ======
+function exportAll() {
+  // Read all current values first
+  readTimelineFields();
+  readFamilyFields();
+  readPhotoFields();
+  readValuesFields();
+  saveAll();
+
+  // Generate data.js content
+  const dataJS = generateDataJS();
+
+  // Generate manifest files
+  const manifestFiles = {};
+  for (const [year, items] of Object.entries(manifests)) {
+    manifestFiles[year] = JSON.stringify(items, null, 2);
+  }
+
+  // Create zip-like download (individual files)
+  downloadFile('data.js', dataJS);
+
+  for (const [year, content] of Object.entries(manifestFiles)) {
+    setTimeout(() => downloadFile(`manifest-${year}.json`, content), 300 * (parseInt(year) - 2018));
+  }
+
+  showToast('Files downloaded! Push them to your repo via Claude Code.');
+
+  // Show preview
+  document.getElementById('export-preview').style.display = 'block';
+  document.getElementById('export-data-preview').textContent = dataJS;
+}
+
+function generateDataJS() {
+  let js = '// ====== YEAR DATA ======\nconst Y=[\n';
+
+  yearData.forEach((yr, i) => {
+    js += `{y:'${yr.y}',h:${jsStr(yr.h)},s:${jsStr(yr.s)},n:${jsStr(yr.n)},ct:${yr.ct},c:'${yr.c}'`;
+    if (yr.hasPhotos) {
+      js += `,hasPhotos:true,\n  sbHl:${jsStr(yr.sbHl || yr.h)},sbDs:${jsStr(yr.sbDs || yr.s)}`;
+    }
+    js += '}' + (i < yearData.length - 1 ? ',\n' : '\n');
+  });
+
+  js += '];\n\n';
+  js += "const TC=['ph1','ph2','ph3','ph4','ph5','ph6','ph7'];\n\n";
+
+  // Cork positions
+  js += `const CORK_POSITIONS = [\n`;
+  CORK_POSITIONS_DATA.forEach((p, i) => {
+    js += '  ' + JSON.stringify(p) + (i < CORK_POSITIONS_DATA.length - 1 ? ',\n' : '\n');
+  });
+  js += '];\n\n';
+
+  // Scrapbook layouts
+  js += 'const SCRAPBOOK_LAYOUTS = ' + JSON.stringify(SCRAPBOOK_LAYOUTS_DATA, null, 2) + ';\n';
+
+  return js;
+}
+
+// Keep these from the original data.js
+const CORK_POSITIONS_DATA = [
+  {"top":"2%","left":"1%","width":"38%","rotate":"-5deg","pin":"pin-r","pinLeft":"30%"},
+  {"top":"1%","left":"40%","width":"32%","rotate":"3deg","pin":"pin-b","pinLeft":"50%"},
+  {"top":"5%","right":"1%","width":"30%","rotate":"-2deg","pin":"pin-g","pinLeft":"40%"},
+  {"top":"46%","left":"0%","width":"30%","rotate":"5deg","pin":"pin-y","pinLeft":"60%"},
+  {"top":"42%","right":"3%","width":"33%","rotate":"-3.5deg","pin":"pin-r","pinLeft":"35%"},
+  {"bottom":"2%","left":"28%","width":"36%","rotate":"-1.5deg","pin":"pin-g","pinLeft":"50%"}
+];
+
+const SCRAPBOOK_LAYOUTS_DATA = {
+  "2019":{"rotations":[3,3.5,1.5,1,-2.5,2,-1.5,3,-2,1.5,-3,2.5,-1,3,-2,1.5,-3,2,-1.5,3,-2,2.5,-1.5,3],"widths_portrait":[280,320,240,260,300,240,280,260,240,280,260,300,240,280,260,240,300,280,260,240,280,300,260,280],"widths_landscape":[400,360,380,340,400,360,380,340,400,360,380,340,400,360,380,340,400,360,380,340,400,360,380,340],"tapePattern":[false,false,true,false,false,true,false,false,false,true,false,false,true,false,false,false,true,false,false,true,false,false,false,true],"tapeClasses":["wt-b","wt-s","wt-r","wt-y","wt-b","wt-s","wt-r","wt-y","wt-b","wt-s","wt-r","wt-y"]},
+  "2026":{"rotations":[3,3.5,2,-3,-1.5,2.5,-2,1.5,3,-2.5,1,-3,2,-1.5,3,-2,2.5,-1,3,-2.5,1.5,-3],"widths_portrait":[240,280,260,300,240,280,260,240,300,280,260,240,280,300,260,240,280,260,300,240,280,260],"widths_landscape":[400,360,380,340,400,360,380,340,400,360,380,340,400,360,380,340,400,360,380,340,400,360],"tapePattern":[false,false,true,false,true,false,false,true,false,false,true,false,false,true,false,false,true,false,false,true,false,false],"tapeClasses":["wt-s","wt-b","wt-r","wt-y","wt-s","wt-b","wt-r","wt-y","wt-s","wt-b","wt-r","wt-y"]}
+};
+
+// ====== UI HELPERS ======
+function toggleCard(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+function switchPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Read photo fields before switching away
+  readPhotoFields();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function downloadFile(name, content) {
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function jsStr(s) {
+  if (!s) return "''";
+  return "'" + s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n') + "'";
+}
+</script>
+</body>
+</html>
