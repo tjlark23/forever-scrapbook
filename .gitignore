@@ -9,3 +9,11 @@ node_modules/
 .claude/skills
 AGENTS.md
 CLAUDE.md
+
+# Large media files — archived at ~/ai-media-archive/forever-scrapbook/
+*.mp4
+*.mov
+*.MP4
+*.MOV
+*.avi
+*.mkv
