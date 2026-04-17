@@ -1,0 +1,11 @@
+.env
+.env.*
+.DS_Store
+node_modules/
+.next/
+.vercel
+.wrangler/
+.claude/agents
+.claude/skills
+AGENTS.md
+CLAUDE.md
